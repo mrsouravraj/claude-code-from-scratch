@@ -1,5 +1,0 @@
-# requirements.txt — kept for legacy pip compatibility.
-# Preferred: use `uv sync` (see README).
-anthropic>=0.40.0       # Anthropic SDK — client, streaming, tool use
-python-dotenv>=1.0.0    # .env file loading
-colorama>=0.4.6         # Windows ANSI colour compatibility
