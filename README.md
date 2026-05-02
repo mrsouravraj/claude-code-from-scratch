@@ -12,6 +12,7 @@
 | `perception_action_loop.py` | **Episode 01** — the simplest agent loop (LLM → `bash` → repeat) with a small REPL. |
 | `tool_use.py` | **Episode 02** — scalable multi-tool agent via a dispatch map (bash + basic file tools) using `stream_loop()`. |
 | `todo_write.py` | **Episode 03** — planning + progress tracking via `todo_write`/`todo_read`/`todo_update` persisted to `.agent_todo.json`. |
+| `sub_agent.py` | **Episode 04** — delegate subtasks to isolated subagents via `spawn_subagent` (fresh context). |
 | `pyproject.toml` / `uv.lock` | Dependencies and reproducible installs via `uv`. |
 
 ---
@@ -40,6 +41,9 @@ uv run e02
 # 6. Run Episode 03
 uv run e03
 
+# 7. Run Episode 04
+uv run e04
+
 # (Optional) Run the "latest" episode
 uv run agent
 ```
@@ -58,6 +62,7 @@ cp .env.example .env            # fill in your keys
 python perception_action_loop.py
 # or: python tool_use.py
 # or: python todo_write.py
+# or: python sub_agent.py
 ```
 
 ---
@@ -82,6 +87,7 @@ claude-code-from-scratch/
 ├── perception_action_loop.py # Episode 01
 ├── tool_use.py               # Episode 02
 ├── todo_write.py             # Episode 03
+├── sub_agent.py              # Episode 04
 ├── pyproject.toml            # Project config (PEP 621)
 ├── uv.lock                   # Locked dependencies (uv)
 ├── .env                      # Your secrets (git-ignored)
