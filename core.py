@@ -645,6 +645,70 @@ def _run_coro(coro):
     raise RuntimeError("Already in an event loop. Use async_stream_loop/async_dispatch_tools instead.")
 
 
+def _extract_tool_use_ids(content: Any) -> List[str]:
+    """Return tool_use ids from a message content (SDK blocks or dicts)."""
+    ids: List[str] = []
+    if not isinstance(content, list):
+        return ids
+    for block in content:
+        if isinstance(block, dict):
+            if block.get("type") == "tool_use" and block.get("id"):
+                ids.append(str(block["id"]))
+        else:
+            if getattr(block, "type", None) == "tool_use" and getattr(block, "id", None):
+                ids.append(str(block.id))
+    return ids
+
+
+def _extract_tool_result_ids(content: Any) -> List[str]:
+    """Return tool_result tool_use_id values from a message content."""
+    ids: List[str] = []
+    if not isinstance(content, list):
+        return ids
+    for block in content:
+        if isinstance(block, dict):
+            if block.get("type") == "tool_result" and block.get("tool_use_id"):
+                ids.append(str(block["tool_use_id"]))
+    return ids
+
+
+def _repair_tool_result_sequence(messages: List[Dict[str, Any]]) -> None:
+    """
+    Ensure every assistant tool_use message is immediately followed by a tool_result message.
+
+    Anthropic requires: assistant(tool_use...) -> next user(message with tool_result blocks).
+    If we detect missing/invalid pairing, we inject placeholder tool_results so the next request
+    doesn't 400. This is a safety net; the injected results make the mismatch explicit to the model.
+    """
+    i = 0
+    while i < len(messages) - 1:
+        msg = messages[i]
+        if msg.get("role") != "assistant":
+            i += 1
+            continue
+        tool_use_ids = _extract_tool_use_ids(msg.get("content"))
+        if not tool_use_ids:
+            i += 1
+            continue
+
+        next_msg = messages[i + 1]
+        next_ids = _extract_tool_result_ids(next_msg.get("content"))
+        if next_msg.get("role") == "user" and all(tid in next_ids for tid in tool_use_ids):
+            i += 2
+            continue
+
+        placeholder_results = [
+            {
+                "type": "tool_result",
+                "tool_use_id": tid,
+                "content": "Error: missing tool_result block was auto-injected by the harness.",
+            }
+            for tid in tool_use_ids
+        ]
+        messages.insert(i + 1, {"role": "user", "content": placeholder_results})
+        i += 2
+
+
 def dispatch_tools(response_content: list, dispatch: dict) -> List[Dict[str, Any]]:
     """Backward-compatible sync wrapper around async_dispatch_tools."""
     return _run_coro(async_dispatch_tools(response_content, dispatch))
@@ -673,6 +737,9 @@ async def async_stream_loop(
     extra_kwargs = extra_kwargs or {}
     
     while True:
+        # Defensive: ensure tool_use/tool_result sequence is valid before calling the API
+        _repair_tool_result_sequence(messages)
+
         # Indicate the thinking phase in Cyan
         print("\n\033[36m> Thinking...\033[0m")
         
