@@ -12,7 +12,9 @@ dependencies = [
 ]
 
 [project.scripts]
-agent = "perception_action_loop:main"
+agent = "tool_use:main"
+s01 = "perception_action_loop:main"
+s02 = "tool_use:main"
 
 [tool.uv]
 dev-dependencies = []

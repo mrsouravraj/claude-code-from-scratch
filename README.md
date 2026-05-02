@@ -8,8 +8,10 @@
 
 | File | Purpose |
 |------|---------|
-| `core.py` | The main agent. Imports, config, safety rules, tool definitions, `run_bash`, `agent_loop`, and the interactive REPL — all in one clean file. |
-| `perception_action_loop.py` | Standalone, heavily-commented walkthrough of the same perception → action cycle. Good for learning / reference. |
+| `core.py` | Shared primitives: Anthropic client/config, safety checks, tool schemas, tool handlers, dispatch maps, and the reusable `stream_loop()`. |
+| `perception_action_loop.py` | **Episode 01** — the simplest agent loop (LLM → `bash` → repeat) with a small REPL. |
+| `tool_use.py` | **Episode 02** — scalable multi-tool agent via a dispatch map (bash + basic file tools) using `stream_loop()`. |
+| `pyproject.toml` / `uv.lock` | Dependencies and reproducible installs via `uv`. |
 
 ---
 
@@ -26,12 +28,16 @@ uv sync
 
 # 3. Copy the environment template and add your API key
 cp .env.example .env
-# then edit .env and fill in ANTHROPIC_API_KEY and MODEL_ID
+# then edit .env and fill in ANTHROPIC_API_KEY (MODEL_ID is optional)
 
-# 4. Run the agent
+# 4. Run Episode 01
+uv run s01
+
+# 5. Run Episode 02
+uv run s02
+
+# (Optional) Run the "latest" episode
 uv run agent
-# or
-uv run python core.py
 ```
 
 ---
@@ -41,10 +47,12 @@ uv run python core.py
 ```bash
 python -m venv venv
 source venv/bin/activate        # Windows: venv\Scripts\activate
-pip install -r requirements.txt
+python -m pip install -U pip
+python -m pip install -e .
 
 cp .env.example .env            # fill in your keys
-python core.py
+python perception_action_loop.py
+# or: python tool_use.py
 ```
 
 ---
@@ -55,7 +63,8 @@ Create a `.env` file (or export the vars) before running:
 
 ```dotenv
 ANTHROPIC_API_KEY=sk-ant-...   # Required — get yours at console.anthropic.com
-MODEL_ID=claude-sonnet-4-5     # Required — any Anthropic model ID
+MODEL_ID=claude-sonnet-4-6     # Optional — defaults to this if unset
+ANTHROPIC_BASE_URL=...         # Optional — for proxies / gateways
 ```
 
 ---
@@ -64,13 +73,15 @@ MODEL_ID=claude-sonnet-4-5     # Required — any Anthropic model ID
 
 ```
 claude-code-from-scratch/
-├── core.py                   # Main agent entry-point
-├── perception_action_loop.py # Annotated learning reference
-├── pyproject.toml            # uv / PEP 517 project config
-├── requirements.txt          # pip fallback
+├── core.py                   # Shared primitives (tools, dispatch, stream loop)
+├── perception_action_loop.py # Episode 01
+├── tool_use.py               # Episode 02
+├── pyproject.toml            # Project config (PEP 621)
+├── uv.lock                   # Locked dependencies (uv)
 ├── .env                      # Your secrets (git-ignored)
 ├── .env.example              # Template — safe to commit
 ├── .python-version           # Pins Python version for uv
+├── .venv/                    # Created by uv sync (git-ignored)
 └── README.md
 ```
 
@@ -82,7 +93,7 @@ claude-code-from-scratch/
 User input
     │
     ▼
-agent_loop()
+Episode 01: agent_loop()
     │
     ├─► LLM (Anthropic API)
     │        │ stop_reason == "tool_use"
