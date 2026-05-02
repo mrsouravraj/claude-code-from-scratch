@@ -8,6 +8,7 @@ dependencies = [
     "anthropic>=0.40.0",
     "python-dotenv>=1.0.0",
     "colorama>=0.4.6",
+    "PyYAML>=6.0.1",
 ]
 
 [project.scripts]
@@ -15,3 +16,8 @@ agent = "perception_action_loop:main"
 
 [tool.uv]
 dev-dependencies = []
+package = true
+
+[tool.setuptools]
+py-modules = ["core", "perception_action_loop", "tool_use"]
+
