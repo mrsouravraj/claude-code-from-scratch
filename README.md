@@ -19,6 +19,7 @@
 | `e08_background_tasks.py` | **Episode 08** — run slow shell commands in the background with notifications. |
 | `e09_agents_team.py` | **Episode 09** — persistent teammates with filesystem mailboxes (`.mailboxes/`). |
 | `e10_team_protocols.py` | **Episode 10** — FSM-governed teammate protocol to avoid deadlocks/talking over. |
+| `e11_autonomous_agents.py` | **Episode 11** — agents self-organize by atomically claiming tasks from the shared board (`.agent_tasks.json`). |
 | `skills/` | Skill library (markdown SOPs) loaded on-demand in Episode 05. |
 | `pyproject.toml` / `uv.lock` | Dependencies and reproducible installs via `uv`. |
 
@@ -68,6 +69,9 @@ uv run e09
 
 # 13. Run Episode 10
 uv run e10
+
+# 14. Run Episode 11
+uv run e11
 
 # (Optional) Run the "latest" episode
 uv run agent
