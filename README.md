@@ -13,6 +13,8 @@
 | `tool_use.py` | **Episode 02** — scalable multi-tool agent via a dispatch map (bash + basic file tools) using `stream_loop()`. |
 | `todo_write.py` | **Episode 03** — planning + progress tracking via `todo_write`/`todo_read`/`todo_update` persisted to `.agent_todo.json`. |
 | `sub_agent.py` | **Episode 04** — delegate subtasks to isolated subagents via `spawn_subagent` (fresh context). |
+| `skill_loading.py` | **Episode 05** — discover + lazily load `skills/*/SKILL.md` via `list_skills` and `load_skill`. |
+| `skills/` | Skill library (markdown SOPs) loaded on-demand in Episode 05. |
 | `pyproject.toml` / `uv.lock` | Dependencies and reproducible installs via `uv`. |
 
 ---
@@ -44,6 +46,9 @@ uv run e03
 # 7. Run Episode 04
 uv run e04
 
+# 8. Run Episode 05
+uv run e05
+
 # (Optional) Run the "latest" episode
 uv run agent
 ```
@@ -63,6 +68,7 @@ python perception_action_loop.py
 # or: python tool_use.py
 # or: python todo_write.py
 # or: python sub_agent.py
+# or: python skill_loading.py
 ```
 
 ---
@@ -88,6 +94,8 @@ claude-code-from-scratch/
 ├── tool_use.py               # Episode 02
 ├── todo_write.py             # Episode 03
 ├── sub_agent.py              # Episode 04
+├── skill_loading.py          # Episode 05
+├── skills/                   # Skill library (SKILL.md files)
 ├── pyproject.toml            # Project config (PEP 621)
 ├── uv.lock                   # Locked dependencies (uv)
 ├── .env                      # Your secrets (git-ignored)

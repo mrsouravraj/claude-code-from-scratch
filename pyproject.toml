@@ -12,16 +12,17 @@ dependencies = [
 ]
 
 [project.scripts]
-agent = "sub_agent:main"
+agent = "skill_loading:main"
 e01 = "perception_action_loop:main"
 e02 = "tool_use:main"
 e03 = "todo_write:main"
 e04 = "sub_agent:main"
+e05 = "skill_loading:main"
 
 [tool.uv]
 dev-dependencies = []
 package = true
 
 [tool.setuptools]
-py-modules = ["core", "perception_action_loop", "tool_use", "todo_write", "sub_agent"]
+py-modules = ["core", "perception_action_loop", "tool_use", "todo_write", "sub_agent", "skill_loading"]
 
