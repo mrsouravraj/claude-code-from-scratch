@@ -12,18 +12,30 @@ dependencies = [
 ]
 
 [project.scripts]
-agent = "skill_loading:main"
-e01 = "perception_action_loop:main"
-e02 = "tool_use:main"
-e03 = "todo_write:main"
-e04 = "sub_agent:main"
-e05 = "skill_loading:main"
-e06 = "context_compact:main"
+agent = "e05_skill_loading:main"
+e01 = "e01_perception_action_loop:main"
+e02 = "e02_tool_use:main"
+e03 = "e03_todo_write:main"
+e04 = "e04_sub_agent:main"
+e05 = "e05_skill_loading:main"
+e06 = "e06_context_compact:main"
+e07 = "e07_task_system:main"
+e08 = "e08_background_tasks:main"
 
 [tool.uv]
 dev-dependencies = []
 package = true
 
 [tool.setuptools]
-py-modules = ["core", "perception_action_loop", "tool_use", "todo_write", "sub_agent", "skill_loading", "context_compact"]
+py-modules = [
+    "core",
+    "e01_perception_action_loop",
+    "e02_tool_use",
+    "e03_todo_write",
+    "e04_sub_agent",
+    "e05_skill_loading",
+    "e06_context_compact",
+    "e07_task_system",
+    "e08_background_tasks",
+]
 

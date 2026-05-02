@@ -9,11 +9,11 @@
 | File | Purpose |
 |------|---------|
 | `core.py` | Shared primitives: Anthropic client/config, safety checks, tool schemas, tool handlers, dispatch maps, and the reusable `stream_loop()`. |
-| `perception_action_loop.py` | **Episode 01** — the simplest agent loop (LLM → `bash` → repeat) with a small REPL. |
-| `tool_use.py` | **Episode 02** — scalable multi-tool agent via a dispatch map (bash + basic file tools) using `stream_loop()`. |
-| `todo_write.py` | **Episode 03** — planning + progress tracking via `todo_write`/`todo_read`/`todo_update` persisted to `.agent_todo.json`. |
-| `sub_agent.py` | **Episode 04** — delegate subtasks to isolated subagents via `spawn_subagent` (fresh context). |
-| `skill_loading.py` | **Episode 05** — discover + lazily load `skills/*/SKILL.md` via `list_skills` and `load_skill`. |
+| `e01_perception_action_loop.py` | **Episode 01** — the simplest agent loop (LLM → `bash` → repeat) with a small REPL. |
+| `e02_tool_use.py` | **Episode 02** — scalable multi-tool agent via a dispatch map (bash + basic file tools) using `stream_loop()`. |
+| `e03_todo_write.py` | **Episode 03** — planning + progress tracking via `todo_write`/`todo_read`/`todo_update` persisted to `.agent_todo.json`. |
+| `e04_sub_agent.py` | **Episode 04** — delegate subtasks to isolated subagents via `spawn_subagent` (fresh context). |
+| `e05_skill_loading.py` | **Episode 05** — discover + lazily load `skills/*/SKILL.md` via `list_skills` and `load_skill`. |
 | `skills/` | Skill library (markdown SOPs) loaded on-demand in Episode 05. |
 | `pyproject.toml` / `uv.lock` | Dependencies and reproducible installs via `uv`. |
 
@@ -64,11 +64,11 @@ python -m pip install -U pip
 python -m pip install -e .
 
 cp .env.example .env            # fill in your keys
-python perception_action_loop.py
-# or: python tool_use.py
-# or: python todo_write.py
-# or: python sub_agent.py
-# or: python skill_loading.py
+python e01_perception_action_loop.py
+# or: python e02_tool_use.py
+# or: python e03_todo_write.py
+# or: python e04_sub_agent.py
+# or: python e05_skill_loading.py
 ```
 
 ---
@@ -90,11 +90,14 @@ ANTHROPIC_BASE_URL=...         # Optional — for proxies / gateways
 ```
 claude-code-from-scratch/
 ├── core.py                   # Shared primitives (tools, dispatch, stream loop)
-├── perception_action_loop.py # Episode 01
-├── tool_use.py               # Episode 02
-├── todo_write.py             # Episode 03
-├── sub_agent.py              # Episode 04
-├── skill_loading.py          # Episode 05
+├── e01_perception_action_loop.py # Episode 01
+├── e02_tool_use.py               # Episode 02
+├── e03_todo_write.py             # Episode 03
+├── e04_sub_agent.py              # Episode 04
+├── e05_skill_loading.py          # Episode 05
+├── e06_context_compact.py        # Episode 06
+├── e07_task_system.py            # Episode 07
+├── e08_background_tasks.py       # Episode 08
 ├── skills/                   # Skill library (SKILL.md files)
 ├── pyproject.toml            # Project config (PEP 621)
 ├── uv.lock                   # Locked dependencies (uv)

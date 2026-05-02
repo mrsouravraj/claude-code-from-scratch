@@ -2,7 +2,7 @@
 test_integration.py: Integration tests to verify backward compatibility.
 
 This module tests that the refactored run_bash function integrates properly
-with existing code in perception_action_loop.py, tool_use.py, and todo_write.py.
+with existing code in e01_perception_action_loop.py, e02_tool_use.py, and e03_todo_write.py.
 """
 
 import unittest
@@ -19,7 +19,7 @@ from core import (
 
 
 class TestBasicDispatchIntegration(unittest.TestCase):
-    """Test backward compatibility with BASIC_DISPATCH from perception_action_loop.py."""
+    """Test backward compatibility with BASIC_DISPATCH from e01_perception_action_loop.py."""
 
     def test_basic_dispatch_bash_exists(self):
         """Test that BASIC_DISPATCH contains bash tool handler."""
@@ -49,7 +49,7 @@ class TestBasicDispatchIntegration(unittest.TestCase):
 
 
 class TestExtendedDispatchIntegration(unittest.TestCase):
-    """Test backward compatibility with EXTENDED_DISPATCH from tool_use.py."""
+    """Test backward compatibility with EXTENDED_DISPATCH from e02_tool_use.py."""
 
     def test_extended_dispatch_has_all_tools(self):
         """Test that EXTENDED_DISPATCH contains all expected tools."""
