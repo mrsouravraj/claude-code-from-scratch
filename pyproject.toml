@@ -12,7 +12,7 @@ dependencies = [
 ]
 
 [project.scripts]
-agent = "e09_agents_team:main"
+agent = "e10_team_protocols:main"
 e01 = "e01_perception_action_loop:main"
 e02 = "e02_tool_use:main"
 e03 = "e03_todo_write:main"
@@ -22,6 +22,7 @@ e06 = "e06_context_compact:main"
 e07 = "e07_task_system:main"
 e08 = "e08_background_tasks:main"
 e09 = "e09_agents_team:main"
+e10 = "e10_team_protocols:main"
 
 [tool.uv]
 dev-dependencies = []
@@ -39,5 +40,6 @@ py-modules = [
     "e07_task_system",
     "e08_background_tasks",
     "e09_agents_team",
+    "e10_team_protocols",
 ]
 
