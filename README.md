@@ -11,6 +11,7 @@
 | `core.py` | Shared primitives: Anthropic client/config, safety checks, tool schemas, tool handlers, dispatch maps, and the reusable `stream_loop()`. |
 | `perception_action_loop.py` | **Episode 01** — the simplest agent loop (LLM → `bash` → repeat) with a small REPL. |
 | `tool_use.py` | **Episode 02** — scalable multi-tool agent via a dispatch map (bash + basic file tools) using `stream_loop()`. |
+| `todo_write.py` | **Episode 03** — planning + progress tracking via `todo_write`/`todo_read`/`todo_update` persisted to `.agent_todo.json`. |
 | `pyproject.toml` / `uv.lock` | Dependencies and reproducible installs via `uv`. |
 
 ---
@@ -31,10 +32,13 @@ cp .env.example .env
 # then edit .env and fill in ANTHROPIC_API_KEY (MODEL_ID is optional)
 
 # 4. Run Episode 01
-uv run s01
+uv run e01
 
 # 5. Run Episode 02
-uv run s02
+uv run e02
+
+# 6. Run Episode 03
+uv run e03
 
 # (Optional) Run the "latest" episode
 uv run agent
@@ -53,6 +57,7 @@ python -m pip install -e .
 cp .env.example .env            # fill in your keys
 python perception_action_loop.py
 # or: python tool_use.py
+# or: python todo_write.py
 ```
 
 ---
@@ -76,6 +81,7 @@ claude-code-from-scratch/
 ├── core.py                   # Shared primitives (tools, dispatch, stream loop)
 ├── perception_action_loop.py # Episode 01
 ├── tool_use.py               # Episode 02
+├── todo_write.py             # Episode 03
 ├── pyproject.toml            # Project config (PEP 621)
 ├── uv.lock                   # Locked dependencies (uv)
 ├── .env                      # Your secrets (git-ignored)

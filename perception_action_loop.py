@@ -93,7 +93,7 @@ def main() -> None:
     handling for keyboard interrupts and exits.
     """
     # Header display for the console
-    print("\033[90ms01: one loop + bash = an agent\033[0m\n")
+    print("\033[90mEpisode 01: one loop + bash = an agent\033[0m\n")
     
     # Initialize an empty list to store the conversation transcript
     history: List[Dict[str, Any]] = []

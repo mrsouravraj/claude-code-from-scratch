@@ -40,7 +40,7 @@ def main() -> None:
     """
     # Print a professional header to indicate the active session and available tools.
     # \033[90m is a terminal escape code for Gray text.
-    print("\033[90ms02: dispatch map | tools: bash, read, write, grep, glob, revert\033[0m\n")
+    print("\033[90mEpisode 02: dispatch map | tools: bash, read, write, grep, glob, revert\033[0m\n")
 
     # Initialize the conversation history as a list of dictionaries.
     # This list acts as the agent's "short-term memory" for the current session.

@@ -97,16 +97,41 @@ _ALWAYS_BLOCK: List[str] = [
 
 # === Synchronous Tool Implementations ===
 
-def run_bash(command: str) -> str:
+# Default configuration constants
+_DEFAULT_TIMEOUT: int = 120  # Default timeout in seconds
+_DEFAULT_MAX_OUTPUT_CHARS: int = 50000  # Default maximum output length in characters
+
+
+def run_bash(
+    command: str,
+    timeout: Optional[int] = None,
+    max_output_chars: Optional[int] = None
+) -> str:
     """
     Executes a shell command synchronously and returns the output.
 
     Args:
         command (str): The raw shell command string to execute.
+        timeout (int, optional): Command execution timeout in seconds.
+                                Defaults to 120 seconds.
+        max_output_chars (int, optional): Maximum number of characters to return.
+                                         Defaults to 50000 characters.
 
     Returns:
         str: Combined stdout and stderr output, truncated if necessary.
+
+    Examples:
+        >>> run_bash("echo 'hello'")
+        'hello'
+        >>> run_bash("sleep 1", timeout=5)
+        '(no output)'
+        >>> run_bash("echo test", max_output_chars=2)
+        'ec'
     """
+    # Use defaults if not provided
+    timeout = timeout if timeout is not None else _DEFAULT_TIMEOUT
+    max_output_chars = max_output_chars if max_output_chars is not None else _DEFAULT_MAX_OUTPUT_CHARS
+    
     # Security check: verify the command doesn't contain blacklisted patterns
     if any(blocked in command for blocked in _ALWAYS_BLOCK):
         return "Error: dangerous command blocked"
@@ -115,15 +140,15 @@ def run_bash(command: str) -> str:
         # Execute command in the current working directory using the system shell
         result = subprocess.run(
             command, shell=True, cwd=os.getcwd(),
-            capture_output=True, text=True, timeout=120
+            capture_output=True, text=True, timeout=timeout
         )
         # Combine standard output and error output, then strip whitespace
         output = (result.stdout + result.stderr).strip()
-        # Return output or a placeholder, capped at 50k chars to protect context window
-        return output[:50000] if output else "(no output)"
+        # Return output or a placeholder, capped at max_output_chars
+        return output[:max_output_chars] if output else "(no output)"
     except subprocess.TimeoutExpired:
-        # Handle cases where the command runs longer than the 120s limit
-        return "Error: timeout (120s)"
+        # Handle cases where the command runs longer than the configured timeout
+        return f"Error: timeout ({timeout}s)"
     except Exception as e:
         # Return any other execution errors as a string
         return f"Error: {e}"
@@ -298,16 +323,28 @@ def run_revert(path: str) -> str:
 
 # === Asynchronous Tool Wrappers ===
 
-async def async_bash(command: str) -> str:
+async def async_bash(
+    command: str,
+    timeout: Optional[int] = None,
+    max_output_chars: Optional[int] = None
+) -> str:
     """
     Asynchronous version of run_bash for non-blocking execution.
 
     Args:
         command (str): Shell command.
+        timeout (int, optional): Command execution timeout in seconds.
+                                Defaults to 120 seconds.
+        max_output_chars (int, optional): Maximum number of characters to return.
+                                         Defaults to 50000 characters.
 
     Returns:
         str: Command output.
     """
+    # Use defaults if not provided
+    timeout = timeout if timeout is not None else _DEFAULT_TIMEOUT
+    max_output_chars = max_output_chars if max_output_chars is not None else _DEFAULT_MAX_OUTPUT_CHARS
+    
     # Safety check (replicated for async context)
     if any(blocked in command for blocked in _ALWAYS_BLOCK):
         return "Error: dangerous command blocked"
@@ -320,12 +357,12 @@ async def async_bash(command: str) -> str:
             cwd=os.getcwd(),
         )
         # Wait for the process to complete or timeout
-        stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=120)
+        stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=timeout)
         # Decode bytes output and strip
         output = (stdout.decode() + stderr.decode()).strip()
-        return output[:50000] if output else "(no output)"
+        return output[:max_output_chars] if output else "(no output)"
     except asyncio.TimeoutError:
-        return "Error: timeout (120s)"
+        return f"Error: timeout ({timeout}s)"
     except Exception as e:
         return f"Error: {e}"
 
