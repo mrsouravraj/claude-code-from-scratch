@@ -31,7 +31,7 @@ from core import (
     MODEL,             # Model ID (e.g., Claude 3.5 Sonnet)
     EXTENDED_TOOLS,    # Standard file/shell tools
     EXTENDED_DISPATCH, # Mapping for standard tools
-    dispatch_tools,    # Logic to execute tool calls
+    async_dispatch_tools,  # Async tool dispatcher (awaitable-aware)
     stream_loop        # The main autonomous loop logic
 )
 
@@ -53,7 +53,7 @@ SUBAGENT_SYSTEM: str = (
 
 # === Subagent Logic ===
 
-def run_subagent(prompt: str) -> str:
+async def run_subagent(prompt: str) -> str:
     """
     Spawns an isolated agent loop to handle a specific subtask.
 
@@ -92,7 +92,7 @@ def run_subagent(prompt: str) -> str:
             break
         
         # Step 4: If the subagent wants to use tools, execute them using the standard dispatch
-        results: List[Dict[str, Any]] = dispatch_tools(response.content, EXTENDED_DISPATCH)
+        results: List[Dict[str, Any]] = await async_dispatch_tools(response.content, EXTENDED_DISPATCH)
         
         # Step 5: Append results back to the subagent's private history
         sub_messages.append({"role": "user", "content": results})

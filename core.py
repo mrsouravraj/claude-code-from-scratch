@@ -12,7 +12,7 @@ Exports:
     - DEFAULT_SYSTEM (str): The default system prompt for the agent.
     - SNAPSHOTS (dict): An in-memory store for file content snapshots.
     - Synchronous Tools: run_bash, run_read, run_write, run_grep, run_glob, run_revert.
-    - Asynchronous Tools: async_bash, async_read, async_write, async_grep, async_glob.
+    - Asynchronous Tools: async_bash, async_read, async_write, async_grep, async_glob, async_revert.
     - Tool Schemas: BASIC_TOOLS, EXTENDED_TOOLS for the Anthropic API.
     - Dispatch Maps: BASIC_DISPATCH, EXTENDED_DISPATCH, ASYNC_DISPATCH.
     - Governance: load_rules(), check_permission().
@@ -23,6 +23,7 @@ Exports:
 import os  # Operating system interfaces
 import re  # Regular expression operations
 import asyncio  # Asynchronous I/O framework
+import inspect  # Introspection helpers (awaitable detection)
 import subprocess  # Subprocess management for shell commands
 import glob as _glob  # Unix style pathname pattern expansion
 from pathlib import Path  # Object-oriented filesystem paths
@@ -391,6 +392,22 @@ async def async_glob(pattern: str) -> str:
     return await loop.run_in_executor(None, run_glob, pattern)
 
 
+async def async_revert(path: str) -> str:
+    """
+    Asynchronous version of run_revert for non-blocking file restoration.
+    
+    Runs run_revert in a separate thread to avoid blocking the event loop.
+    
+    Args:
+        path (str): The file path to restore.
+        
+    Returns:
+        str: Status message of the restoration.
+    """
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(None, run_revert, path)
+
+
 # === Tool Definitions for Anthropic API ===
 
 # Basic tool list containing only the bash command
@@ -485,11 +502,12 @@ EXTENDED_DISPATCH: Dict[str, Any] = {
 
 # Mapping names to full suite of asynchronous tool wrappers
 ASYNC_DISPATCH: Dict[str, Any] = {
-    "bash":  lambda inp: async_bash(inp["command"]),
-    "read":  lambda inp: async_read(inp["path"], inp.get("start_line"), inp.get("end_line")),
-    "write": lambda inp: async_write(inp["path"], inp["content"]),
-    "grep":  lambda inp: async_grep(inp["pattern"], inp.get("path", "."), inp.get("recursive", True)),
-    "glob":  lambda inp: async_glob(inp["pattern"]),
+    "bash":   lambda inp: async_bash(inp["command"]),
+    "read":   lambda inp: async_read(inp["path"], inp.get("start_line"), inp.get("end_line")),
+    "write":  lambda inp: async_write(inp["path"], inp["content"]),
+    "grep":   lambda inp: async_grep(inp["pattern"], inp.get("path", "."), inp.get("recursive", True)),
+    "glob":   lambda inp: async_glob(inp["pattern"]),
+    "revert": lambda inp: async_revert(inp["path"]),
 }
 
 # === Permission Governance ===
@@ -562,7 +580,7 @@ def check_permission(tool_name: str, input_str: str, rules: Optional[dict] = Non
 
 # === Shared Agent Logic ===
 
-def dispatch_tools(response_content: list, dispatch: dict) -> List[Dict[str, Any]]:
+async def async_dispatch_tools(response_content: list, dispatch: dict) -> List[Dict[str, Any]]:
     """
     Processes tool use blocks from an assistant response and executes handlers.
 
@@ -592,6 +610,8 @@ def dispatch_tools(response_content: list, dispatch: dict) -> List[Dict[str, Any
             try:
                 # Call the mapped function with input dict
                 output = handler(tool_input)
+                if inspect.isawaitable(output):
+                    output = await output
             except Exception as e:
                 # Catch internal handler errors
                 output = f"Error during tool execution: {e}"
@@ -611,7 +631,26 @@ def dispatch_tools(response_content: list, dispatch: dict) -> List[Dict[str, Any
     return results
 
 
-def stream_loop(
+def _run_coro(coro):
+    """
+    Run an async coroutine from synchronous code.
+
+    Notes:
+    - If you're already inside an event loop, call the async_* functions instead.
+    """
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(coro)
+    raise RuntimeError("Already in an event loop. Use async_stream_loop/async_dispatch_tools instead.")
+
+
+def dispatch_tools(response_content: list, dispatch: dict) -> List[Dict[str, Any]]:
+    """Backward-compatible sync wrapper around async_dispatch_tools."""
+    return _run_coro(async_dispatch_tools(response_content, dispatch))
+
+
+async def async_stream_loop(
     messages: List[Dict[str, Any]],
     tools: List[Dict[str, Any]],
     dispatch: Dict,
@@ -662,6 +701,17 @@ def stream_loop(
             return response
             
         # Execute tool calls and gather results
-        results = dispatch_tools(response.content, dispatch)
+        results = await async_dispatch_tools(response.content, dispatch)
         # Append tool results to history for the model to see in the next iteration
         messages.append({"role": "user", "content": results})
+
+
+def stream_loop(
+    messages: List[Dict[str, Any]],
+    tools: List[Dict[str, Any]],
+    dispatch: Dict,
+    system: Optional[str] = None,
+    extra_kwargs: Optional[Dict[str, Any]] = None
+):
+    """Backward-compatible sync wrapper around async_stream_loop."""
+    return _run_coro(async_stream_loop(messages, tools, dispatch, system=system, extra_kwargs=extra_kwargs))

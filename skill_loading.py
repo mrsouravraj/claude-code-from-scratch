@@ -32,7 +32,7 @@ from typing import List, Dict, Any, Union, Optional  # For strict type hinting
 # === Local Module Imports ===
 from core import (
     EXTENDED_TOOLS,      # Standard file/shell tools (bash, read, etc.)
-    EXTENDED_DISPATCH,   # Mapping for standard tools
+    ASYNC_DISPATCH,      # Mapping for standard tools (async implementations)
     stream_loop          # The core autonomous loop logic
 )
 
@@ -181,7 +181,7 @@ SKILL_TOOLS: List[Dict[str, Any]] = EXTENDED_TOOLS + [
 
 # Map the meta-tools to their execution logic
 SKILL_DISPATCH: Dict[str, Any] = {
-    **EXTENDED_DISPATCH, # Inherit bash, read, write, etc.
+    **ASYNC_DISPATCH, # Inherit bash, read, write, etc.
     "list_skills": lambda inp: run_list_skills(),
     "load_skill":  lambda inp: run_load_skill(inp["name"]),
 }

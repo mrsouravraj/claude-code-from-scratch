@@ -27,7 +27,7 @@ from typing import List, Dict, Any, Union, Optional  # Type hinting for robust c
 # === Local Module Imports ===
 from core import (
     EXTENDED_TOOLS,      # Base tools (bash, read, write, etc.)
-    EXTENDED_DISPATCH,   # Mapping for base tools
+    ASYNC_DISPATCH,      # Mapping for base tools (async implementations)
     stream_loop          # The core autonomous loop logic
 )
 
@@ -188,7 +188,7 @@ TODO_TOOLS: List[Dict[str, Any]] = EXTENDED_TOOLS + [
 # We expand the dispatch map by merging the existing map with our new handlers.
 # This keeps the agent's core capabilities available while adding planning.
 TODO_DISPATCH: Dict[str, Any] = {
-    **EXTENDED_DISPATCH, # Unpack existing tools (bash, read, write, etc.)
+    **ASYNC_DISPATCH, # Unpack existing tools (bash, read, write, etc.)
     "todo_write":  lambda inp: run_todo_write(inp["tasks"]),
     "todo_read":   lambda inp: run_todo_read(),
     "todo_update": lambda inp: run_todo_update(inp["index"], inp["status"]),

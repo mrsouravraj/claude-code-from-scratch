@@ -24,7 +24,7 @@ from typing import List, Dict, Any  # Support for complex type annotations
 # We import the extended toolset and the centralized streaming loop logic.
 from core import (
     EXTENDED_TOOLS,      # List of JSON schemas for: bash, read, write, grep, glob, revert
-    EXTENDED_DISPATCH,   # Dictionary mapping tool names to their Python implementations
+    ASYNC_DISPATCH,      # Dictionary mapping tool names to async implementations
     stream_loop          # The abstracted Thinking-Acting loop with streaming support
 )
 
@@ -77,7 +77,7 @@ def main() -> None:
         stream_loop(
             messages=history,            # Pass the mutated state
             tools=EXTENDED_TOOLS,        # Pass the full suite of file/shell tools
-            dispatch=EXTENDED_DISPATCH   # Provide the routing map for those tools
+            dispatch=ASYNC_DISPATCH      # Provide the routing map for those tools
         )
         
         # Print a newline to separate conversation turns for better terminal readability.
