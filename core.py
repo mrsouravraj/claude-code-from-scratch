@@ -1,7 +1,7 @@
 """
 agents/core.py: Core components for the AI agent sessions.
 
-This module provides the shared foundation for all agent sessions (s01–s23).
+This module provides the shared foundation for all agent sessions (Episode 01-23).
 It centralizes all core functionalities to ensure that no logic is duplicated
 across session-specific files. Each session file imports from this module and
 only contains the new mechanism being introduced in that session.
@@ -72,7 +72,7 @@ if os.getenv("ANTHROPIC_BASE_URL"):
 client: Anthropic = Anthropic(base_url=os.getenv("ANTHROPIC_BASE_URL"))
 
 # Define the Model ID used for all completions, sourced from environment variables
-MODEL: str = os.environ.get("MODEL_ID", "claude-3-5-sonnet-20240620")
+MODEL: str = os.environ.get("MODEL_ID", "claude-sonnet-4-6")
 
 # Define the default system instructions for the AI agent
 DEFAULT_SYSTEM: str = f"You are a coding agent at {os.getcwd()}. Use tools to solve tasks. Act, don't explain."

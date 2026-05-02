@@ -1,24 +1,19 @@
 #!/usr/bin/env python3
 """
-tool_use.py: Implementation of the Scalable Tool Dispatch Map Pattern.
+tool_use.py — Episode 02: The Scalable Tool Dispatch Map Pattern
 
 Motto: "Adding a tool means adding one handler"
 
-This script demonstrates the second evolution of the AI agent architecture. 
-Unlike s01, which had a hardcoded tool loop, s02 utilizes a 'Dispatch Map' 
-strategy. This decouples the agent's decision-making process from the 
-execution of specific tasks.
+The agent now supports multiple tools using a dispatch map. 
+No more hardcoded tool-use logic: instead, the agent loop (stream_loop) 
+remains generic, and the EXTENDED_DISPATCH dictionary routes tool calls 
+to their respective handlers.
 
-Key Architectural Concepts:
-    1. Separation of Concerns: The agent loop (stream_loop) handles the 
-       conversation flow, while the Dispatch Map (EXTENDED_DISPATCH) handles 
-       the execution of specific capabilities.
-    2. Scalability: To add a new capability (e.g., database access, web search), 
-       a developer only needs to update the tool schema and the dispatch map. 
-       The core logic remains untouched.
-    3. Abstraction: By using the `stream_loop` from the `core` module, we 
-       centralize the complexity of streaming API responses and recursive 
-       tool calls.
+Key points:
+    - Separation: stream_loop manages the conversation flow; 
+      EXTENDED_DISPATCH manages tool execution.
+    - Scalability: To add a tool, just update the schema list and the dispatch map.
+    - Abstraction: All streaming and tool recursion lives in the shared stream_loop.
 """
 
 # === Standard Library Imports ===
