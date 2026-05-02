@@ -220,3 +220,6 @@ __marimo__/
 .agent_todo.json
 .agent_tasks.json
 .agent_memory.md
+
+# Episode 09: multi-agent mailboxes
+.mailboxes/

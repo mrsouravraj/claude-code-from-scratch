@@ -14,6 +14,10 @@
 | `e03_todo_write.py` | **Episode 03** — planning + progress tracking via `todo_write`/`todo_read`/`todo_update` persisted to `.agent_todo.json`. |
 | `e04_sub_agent.py` | **Episode 04** — delegate subtasks to isolated subagents via `spawn_subagent` (fresh context). |
 | `e05_skill_loading.py` | **Episode 05** — discover + lazily load `skills/*/SKILL.md` via `list_skills` and `load_skill`. |
+| `e06_context_compact.py` | **Episode 06** — compress history + persist long-term context to `.agent_memory.md`. |
+| `e07_task_system.py` | **Episode 07** — persistent dependency-aware tasks stored in `.agent_tasks.json`. |
+| `e08_background_tasks.py` | **Episode 08** — run slow shell commands in the background with notifications. |
+| `e09_agents_team.py` | **Episode 09** — persistent teammates with filesystem mailboxes (`.mailboxes/`). |
 | `skills/` | Skill library (markdown SOPs) loaded on-demand in Episode 05. |
 | `pyproject.toml` / `uv.lock` | Dependencies and reproducible installs via `uv`. |
 
@@ -48,6 +52,18 @@ uv run e04
 
 # 8. Run Episode 05
 uv run e05
+
+# 9. Run Episode 06
+uv run e06
+
+# 10. Run Episode 07
+uv run e07
+
+# 11. Run Episode 08
+uv run e08
+
+# 12. Run Episode 09
+uv run e09
 
 # (Optional) Run the "latest" episode
 uv run agent

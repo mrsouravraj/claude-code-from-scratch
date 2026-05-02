@@ -12,7 +12,7 @@ dependencies = [
 ]
 
 [project.scripts]
-agent = "e05_skill_loading:main"
+agent = "e09_agents_team:main"
 e01 = "e01_perception_action_loop:main"
 e02 = "e02_tool_use:main"
 e03 = "e03_todo_write:main"
@@ -21,6 +21,7 @@ e05 = "e05_skill_loading:main"
 e06 = "e06_context_compact:main"
 e07 = "e07_task_system:main"
 e08 = "e08_background_tasks:main"
+e09 = "e09_agents_team:main"
 
 [tool.uv]
 dev-dependencies = []
@@ -37,5 +38,6 @@ py-modules = [
     "e06_context_compact",
     "e07_task_system",
     "e08_background_tasks",
+    "e09_agents_team",
 ]
 
