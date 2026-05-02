@@ -1,10 +1,17 @@
 #!/usr/bin/env python3
 """
-core.py — A minimal coding agent powered by the Anthropic API.
+core.py — Shared foundation for the claude-code-from-scratch agent series.
 
-Implements a perception-action loop: the LLM thinks, optionally calls tools
-(currently just bash), observes the results, and repeats until it has a
-final answer.
+This module is a pure library — it defines configuration, safety rules,
+tool schemas, tool handlers, and the dispatch helper. It contains no REPL
+and no agent loop; those live in each episode's script (e.g.
+perception_action_loop.py) so every lesson can evolve independently.
+
+Exports used by other scripts:
+    client, MODEL, DEFAULT_SYSTEM          — Anthropic API setup
+    BASIC_TOOLS, BASIC_DISPATCH            — minimal bash-only toolset
+    EXTENDED_TOOLS, EXTENDED_DISPATCH      — richer toolset (read, grep, …)
+    dispatch_tools()                       — execute tool_use blocks
 """
 
 # ──────────────────────────────────────────────
@@ -46,8 +53,58 @@ _ALWAYS_BLOCK: List[str] = [
 ]
 
 # ──────────────────────────────────────────────
-# 4. Tool definitions & dispatch map
+# 4. Tool handlers
 # ──────────────────────────────────────────────
+
+def run_bash(command: str) -> str:
+    """Run a shell command and return its output (stdout + stderr)."""
+    if any(blocked in command for blocked in _ALWAYS_BLOCK):
+        return "Error: dangerous command blocked"
+    try:
+        result = subprocess.run(
+            command, shell=True, cwd=os.getcwd(),
+            capture_output=True, text=True, timeout=120,
+        )
+        output = (result.stdout + result.stderr).strip()
+        return output[:50000] if output else "(no output)"
+    except subprocess.TimeoutExpired:
+        return "Error: timeout (120s)"
+    except Exception as e:
+        return f"Error: {e}"
+
+
+def run_read(path: str, start_line: int = None, end_line: int = None) -> str:
+    """Read a file and return numbered lines, optionally sliced."""
+    try:
+        with open(path, "r", encoding="utf-8", errors="replace") as f:
+            lines = f.readlines()
+        s = (start_line or 1) - 1
+        e = end_line or len(lines)
+        numbered = "".join(f"{s + 1 + i:4d}\t{l}" for i, l in enumerate(lines[s:e]))
+        return numbered[:50000] or "(empty file)"
+    except FileNotFoundError:
+        return f"Error: file not found: {path}"
+    except Exception as e:
+        return f"Error reading {path}: {e}"
+
+
+def run_grep(pattern: str, path: str = ".", recursive: bool = True) -> str:
+    """Search for a regex pattern across files."""
+    try:
+        flags = ["-r"] if recursive else []
+        r = subprocess.run(
+            ["grep", "-n", *flags, pattern, path],
+            capture_output=True, text=True, timeout=30,
+        )
+        return ((r.stdout + r.stderr).strip() or "(no matches)")[:10000]
+    except Exception as e:
+        return f"Error: {e}"
+
+# ──────────────────────────────────────────────
+# 5. Tool schemas & dispatch maps
+# ──────────────────────────────────────────────
+
+# --- Minimal toolset: bash only ---
 BASIC_TOOLS = [
     {
         "name": "bash",
@@ -64,53 +121,59 @@ BASIC_DISPATCH: dict = {
     "bash": lambda inp: run_bash(inp["command"]),
 }
 
+# --- Extended toolset: bash + read + grep (write/glob/revert coming soon) ---
+EXTENDED_TOOLS = BASIC_TOOLS + [
+    {
+        "name": "read",
+        "description": (
+            "Read a file and return numbered lines. Use start_line/end_line "
+            "for large files. Returns up to 50,000 characters."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "path":       {"type": "string"},
+                "start_line": {"type": "integer"},
+                "end_line":   {"type": "integer"},
+            },
+            "required": ["path"],
+        },
+    },
+    {
+        "name": "grep",
+        "description": "Search for a regex pattern across files. Returns file paths and line numbers of matches.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "pattern":   {"type": "string"},
+                "path":      {"type": "string"},
+                "recursive": {"type": "boolean"},
+            },
+            "required": ["pattern"],
+        },
+    },
+]
+
+EXTENDED_DISPATCH: dict = {
+    "bash": lambda inp: run_bash(inp["command"]),
+    "read": lambda inp: run_read(inp["path"], inp.get("start_line"), inp.get("end_line")),
+    "grep": lambda inp: run_grep(inp["pattern"], inp.get("path", "."), inp.get("recursive", True)),
+}
+
 # ──────────────────────────────────────────────
-# 5. Tool handlers
-# ──────────────────────────────────────────────
-
-def run_bash(command: str) -> str:
-    """
-    Executes a shell command synchronously and returns the output.
-
-    Args:
-        command (str): The raw shell command string to execute.
-
-    Returns:
-        str: Combined stdout and stderr output, truncated if necessary.
-    """
-    # Security check: verify the command doesn't contain blacklisted patterns
-    if any(blocked in command for blocked in _ALWAYS_BLOCK):
-        return "Error: dangerous command blocked"
-
-    try:
-        # Execute command in the current working directory using the system shell
-        result = subprocess.run(
-            command, shell=True, cwd=os.getcwd(),
-            capture_output=True, text=True, timeout=120,
-        )
-        # Combine standard output and error output, then strip whitespace
-        output = (result.stdout + result.stderr).strip()
-        # Return output or a placeholder, capped at 50k chars to protect context window
-        return output[:50000] if output else "(no output)"
-    except subprocess.TimeoutExpired:
-        return "Error: timeout (120s)"
-    except Exception as e:
-        return f"Error: {e}"
-
-# ──────────────────────────────────────────────
-# 6. Agent loop logic
+# 6. Dispatch helper
 # ──────────────────────────────────────────────
 
 def dispatch_tools(response_content: list, dispatch: dict) -> List[Dict[str, Any]]:
     """
-    Executes all tool_use blocks from a model's response and collects the results.
+    Execute all tool_use blocks from a model response and collect results.
 
     Args:
-        response_content (list): The `content` list from an Anthropic Message object.
-        dispatch (dict): The dispatch map to use for routing tool calls.
+        response_content: The `content` list from an Anthropic Message object.
+        dispatch:         Map of tool names → handler callables.
 
     Returns:
-        list: A list of `tool_result` dictionaries ready to be sent back to the model.
+        List of `tool_result` dicts ready to be sent back to the model.
     """
     results = []
 
@@ -123,9 +186,9 @@ def dispatch_tools(response_content: list, dispatch: dict) -> List[Dict[str, Any
         tool_use_id = block.id
         handler     = dispatch.get(tool_name)
 
-        # Log the tool call for user visibility.
+        # Log the tool call for user visibility (yellow text).
         first_val = str(list(tool_input.values())[0])[:80] if tool_input else ""
-        print(f"\033[33m[{tool_name}] {first_val}...\033[0m")  # Yellow text
+        print(f"\033[33m[{tool_name}] {first_val}...\033[0m")
 
         if handler:
             try:
@@ -135,85 +198,69 @@ def dispatch_tools(response_content: list, dispatch: dict) -> List[Dict[str, Any
         else:
             output = f"Error: Unknown tool '{tool_name}'"
 
-        print(str(output)[:300])  # Print a preview of the output.
+        print(str(output)[:300])  # preview for the user
 
         results.append({
-            "type": "tool_result",
+            "type":        "tool_result",
             "tool_use_id": tool_use_id,
-            "content": str(output),
+            "content":     str(output),
         })
 
     return results
 
 
-def agent_loop(messages: List[Dict[str, Any]], dispatch: dict) -> None:
+def stream_loop(
+    messages: List[Dict[str, Any]],
+    tools: list,
+    dispatch: dict,
+) -> None:
     """
-    Runs the core agent interaction loop until the model provides a final answer.
+    A generalized streaming agent loop.
 
-    This function mutates the `messages` list in place, appending each new
-    assistant response and the results of any tool calls.
+    Streams LLM text to the terminal in real-time, then executes any
+    tool calls requested by the model. Repeats until the model stops
+    requesting tools (stop_reason == 'end_turn').
 
     Args:
-        messages (list): The conversation history, which will be updated.
-        dispatch (dict): A map of tool names to their handler functions.
+        messages: Conversation history — mutated in place.
+        tools:    Tool schema list to pass to the API.
+        dispatch: Map of tool names → handler callables.
     """
     while True:
-        # 1. Call the LLM with the current conversation history and available tools.
         print("\n\033[36m> Thinking...\033[0m")
-        response = client.messages.create(
+        full_content = []
+        stop_reason  = None
+
+        with client.messages.stream(
             model=MODEL,
             system=DEFAULT_SYSTEM,
             messages=messages,
-            tools=BASIC_TOOLS,
+            tools=tools,
             max_tokens=8000,
-        )
+        ) as stream:
+            for event in stream:
+                event_type = type(event).__name__
 
-        # Append the assistant's entire response (including any tool calls) to the history.
-        messages.append({"role": "assistant", "content": response.content})
+                # Stream text deltas to the terminal as they arrive.
+                if event_type == "RawContentBlockDeltaEvent":
+                    delta = event.delta
+                    if hasattr(delta, "text"):
+                        print(delta.text, end="", flush=True)
 
-        # 2. Check if the loop should terminate.
-        # If the stop reason is not 'tool_use', the model has provided its final answer.
-        if response.stop_reason != "tool_use":
+                # Capture the final message once the stream is complete.
+                elif event_type == "MessageStopEvent":
+                    final = stream.get_final_message()
+                    full_content = final.content
+                    stop_reason  = final.stop_reason
+
+        print()  # newline after streamed text
+
+        # Record the full assistant response in history.
+        messages.append({"role": "assistant", "content": full_content})
+
+        if stop_reason != "tool_use":
             break
 
-        # 3. If the model wants to use tools, execute them.
-        results = dispatch_tools(response.content, dispatch)
-
-        # Append the tool results to the history as a new "user" message.
+        # Execute requested tools and feed results back.
+        results = dispatch_tools(full_content, dispatch)
         messages.append({"role": "user", "content": results})
-
-# ──────────────────────────────────────────────
-# 7. Main entry-point (REPL)
-# ──────────────────────────────────────────────
-
-def main() -> None:
-    """Interactive REPL — accepts user queries and runs the agent loop."""
-    history: List[Dict[str, Any]] = []
-
-    while True:
-        try:
-            query = input("\033[36ms01 >> \033[0m")
-        except (EOFError, KeyboardInterrupt):
-            print("\nExiting.")
-            break
-
-        if query.strip().lower() in ("q", "exit", ""):
-            break
-
-        # Add the user's query to the conversation history.
-        history.append({"role": "user", "content": query})
-
-        # Run the agent loop (may involve multiple model ↔ tool turns).
-        agent_loop(history, BASIC_DISPATCH)
-
-        # Print the final text response from the assistant.
-        last_message = history[-1]
-        print("\n\033[32mFinal Answer:\033[0m")
-        for block in last_message.get("content", []):
-            if block.type == "text":
-                print(block.text)
-        print()
-
-
-if __name__ == "__main__":
-    main()
