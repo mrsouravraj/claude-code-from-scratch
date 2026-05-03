@@ -513,7 +513,7 @@ ASYNC_DISPATCH: Dict[str, Any] = {
 # === Permission Governance ===
 
 # Path to the permission configuration file
-_PERM_CONFIG: Path = Path(__file__).parent.parent / "config" / "permissions.yaml"
+_PERM_CONFIG: Path = Path(__file__).parent / "config" / "permissions.yaml"
 
 def load_rules() -> Dict[str, List[Dict[str, str]]]:
     """

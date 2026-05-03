@@ -20,7 +20,10 @@
 | `e09_agents_team.py` | **Episode 09** — persistent teammates with filesystem mailboxes (`.mailboxes/`). |
 | `e10_team_protocols.py` | **Episode 10** — FSM-governed teammate protocol to avoid deadlocks/talking over. |
 | `e11_autonomous_agents.py` | **Episode 11** — agents self-organize by atomically claiming tasks from the shared board (`.agent_tasks.json`). |
+| `e12_worktree_task_isolation.py` | **Episode 12** — isolate tasks in per-branch git worktrees to avoid interference. |
+| `e13_streaming.py` | **Episode 13** — explicit real-time token streaming (TTFT improvements). |
 | `e14_tools_extended.py` | **Episode 14** — safety-first tool arsenal (read/write/grep/glob/revert) with snapshots. |
+| `e15_permissions.py` | **Episode 15** — YAML-driven permission governance (`config/permissions.yaml`). |
 | `skills/` | Skill library (markdown SOPs) loaded on-demand in Episode 05. |
 | `pyproject.toml` / `uv.lock` | Dependencies and reproducible installs via `uv`. |
 
@@ -74,8 +77,17 @@ uv run e10
 # 14. Run Episode 11
 uv run e11
 
-# 15. Run Episode 14
+# 15. Run Episode 12
+uv run e12
+
+# 16. Run Episode 13
+uv run e13
+
+# 17. Run Episode 14
 uv run e14
+
+# 18. Run Episode 15
+uv run e15
 
 # (Optional) Run the "latest" episode
 uv run agent
