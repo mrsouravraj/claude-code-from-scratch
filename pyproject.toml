@@ -12,7 +12,7 @@ dependencies = [
 ]
 
 [project.scripts]
-agent = "e11_autonomous_agents:main"
+agent = "e14_tools_extended:main"
 e01 = "e01_perception_action_loop:main"
 e02 = "e02_tool_use:main"
 e03 = "e03_todo_write:main"
@@ -24,6 +24,7 @@ e08 = "e08_background_tasks:main"
 e09 = "e09_agents_team:main"
 e10 = "e10_team_protocols:main"
 e11 = "e11_autonomous_agents:main"
+e14 = "e14_tools_extended:main"
 
 [tool.uv]
 dev-dependencies = []
@@ -43,5 +44,6 @@ py-modules = [
     "e09_agents_team",
     "e10_team_protocols",
     "e11_autonomous_agents",
+    "e14_tools_extended",
 ]
 
