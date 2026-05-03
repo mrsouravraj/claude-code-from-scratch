@@ -12,7 +12,7 @@ dependencies = [
 ]
 
 [project.scripts]
-agent = "e15_permissions:main"
+agent = "e16_event_bus:main"
 e01 = "e01_perception_action_loop:main"
 e02 = "e02_tool_use:main"
 e03 = "e03_todo_write:main"
@@ -28,6 +28,7 @@ e12 = "e12_worktree_task_isolation:main"
 e13 = "e13_streaming:main"
 e14 = "e14_tools_extended:main"
 e15 = "e15_permissions:main"
+e16 = "e16_event_bus:main"
 
 [tool.uv]
 dev-dependencies = []
@@ -51,5 +52,6 @@ py-modules = [
     "e13_streaming",
     "e14_tools_extended",
     "e15_permissions",
+    "e16_event_bus",
 ]
 

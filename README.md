@@ -24,6 +24,7 @@
 | `e13_streaming.py` | **Episode 13** — explicit real-time token streaming (TTFT improvements). |
 | `e14_tools_extended.py` | **Episode 14** — safety-first tool arsenal (read/write/grep/glob/revert) with snapshots. |
 | `e15_permissions.py` | **Episode 15** — YAML-driven permission governance (`config/permissions.yaml`). |
+| `e16_event_bus.py` | **Episode 16** — event bus + lifecycle hooks for observability and interception (logs to `.agent_events.log`). |
 | `skills/` | Skill library (markdown SOPs) loaded on-demand in Episode 05. |
 | `pyproject.toml` / `uv.lock` | Dependencies and reproducible installs via `uv`. |
 
@@ -88,6 +89,9 @@ uv run e14
 
 # 18. Run Episode 15
 uv run e15
+
+# 19. Run Episode 16
+uv run e16
 
 # (Optional) Run the "latest" episode
 uv run agent
